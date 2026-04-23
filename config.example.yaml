@@ -2,8 +2,6 @@ api_keys:
   # data.go.kr > 마이페이지 > 인증키 관리 > 일반 인증키(디코딩) 값을 복사하세요
   kma_service_key: "YOUR_KMA_SERVICE_KEY"
   airkorea_service_key: "YOUR_AIRKOREA_SERVICE_KEY"
-  # https://console.anthropic.com 에서 발급
-  anthropic_api_key: "sk-ant-..."
 
 locations:
   - name: "집"

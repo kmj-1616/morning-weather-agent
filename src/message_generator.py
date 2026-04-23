@@ -1,6 +1,6 @@
 import logging
-
-import anthropic
+import subprocess
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -54,22 +54,30 @@ def _format_data(weather_list: list[dict], air_list: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_message(weather_list: list[dict], air_list: list[dict], api_key: str) -> str:
-    client = anthropic.Anthropic(api_key=api_key)
+def generate_message(weather_list: list[dict], air_list: list[dict]) -> str:
     data_summary = _format_data(weather_list, air_list)
+    full_prompt = SYSTEM_PROMPT + "\n\n" + data_summary
 
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        system=[
-            {
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[{"role": "user", "content": data_summary}],
-    )
-    message = response.content[0].text
+    try:
+        result = subprocess.run(
+            ["claude", "-p", full_prompt],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=60,
+            shell=(sys.platform == "win32"),
+        )
+    except FileNotFoundError:
+        raise RuntimeError(
+            "claude CLI를 찾을 수 없습니다. "
+            "'npm install -g @anthropic-ai/claude-code' 후 'claude login'을 실행하세요."
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("claude CLI 응답 시간 초과 (60초)")
+
+    if result.returncode != 0:
+        raise RuntimeError(f"claude CLI 실행 실패: {result.stderr.strip()}")
+
+    message = result.stdout.strip()
     logger.info("Claude 메시지 생성 완료.")
     return message

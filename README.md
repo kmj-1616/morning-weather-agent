@@ -25,8 +25,9 @@
 |-----|--------|
 | 기상청 단기예보 API 키 | [data.go.kr](https://www.data.go.kr) |
 | 에어코리아 API 키 | [data.go.kr](https://www.data.go.kr) |
-| Anthropic Claude API 키 | [console.anthropic.com](https://console.anthropic.com) |
 | 카카오 REST API 키 | [developers.kakao.com](https://developers.kakao.com) |
+
+- **Claude Pro/Max 구독** 및 `claude login` 완료 상태 필요 (API 키 불필요)
 
 ## 설치
 
@@ -34,6 +35,8 @@
 git clone https://github.com/kwonmijeong/weather-briefing.git
 cd weather-briefing
 pip install -r requirements.txt
+npm install -g @anthropic-ai/claude-code
+claude login
 ```
 
 ## 설정
@@ -50,7 +53,6 @@ cp config.example.yaml config.yaml
 api_keys:
   kma_service_key: "기상청_API_키"
   airkorea_service_key: "에어코리아_API_키"
-  anthropic_api_key: "sk-ant-..."
 
 locations:
   - name: "집"

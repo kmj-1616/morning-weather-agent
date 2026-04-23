@@ -31,7 +31,6 @@ config 로드 → 카카오 토큰 갱신 확인 → [위치별] 격자 변환 +
 api_keys:
   kma_service_key:        # 기상청 API
   airkorea_service_key:   # 에어코리아 API
-  anthropic_api_key:      # Claude API
 
 locations:
   - name: "집"
@@ -61,7 +60,7 @@ logging:
 | 에어코리아 | `apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty` | serviceKey |
 | 카카오 OAuth | `kauth.kakao.com/oauth/token` | client_id + refresh_token |
 | 카카오 메시지 | `kapi.kakao.com/v2/api/talk/memo/default/send` | Bearer token |
-| Claude API | `api.anthropic.com/v1/messages` | Bearer token |
+| Claude CLI | `claude -p "..."` subprocess | Claude Pro/Max 구독 인증 |
 
 ## 초기 설정 및 실행
 
@@ -78,6 +77,6 @@ python main.py
 - **`config.yaml`은 절대 커밋 금지** — API 키·토큰 포함, `.gitignore`에 등록됨
 - **토큰 갱신 로직**은 `src/token_manager.py`에만 둔다
 - **격자 변환**은 `src/grid_converter.py`의 `latlon_to_grid()`만 사용한다
-- **Claude API 호출**은 `src/message_generator.py`에만 위치, system_prompt의 `ephemeral` 캐시 설정을 제거하지 않는다
+- **Claude 호출**은 `src/message_generator.py`에만 위치, `claude -p` subprocess 방식을 사용한다 (anthropic SDK 아님)
 - **로그 경로**는 config.yaml의 `logging.log_file` 값을 따른다 (하드코딩 금지)
 - config 저장은 반드시 `.tmp` 임시 파일 경유 후 원자적 교체 방식을 유지한다 (`src/config_loader.py` 참고)

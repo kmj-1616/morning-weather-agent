@@ -10,7 +10,6 @@ class ConfigError(Exception):
 REQUIRED_KEYS = [
     ("api_keys", "kma_service_key"),
     ("api_keys", "airkorea_service_key"),
-    ("api_keys", "anthropic_api_key"),
     ("kakao", "client_id"),
     ("kakao", "redirect_uri"),
 ]

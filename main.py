@@ -58,9 +58,7 @@ def main() -> None:
             all_weather.append(weather)
             all_air.append(air)
 
-        message = message_generator.generate_message(
-            all_weather, all_air, config["api_keys"]["anthropic_api_key"]
-        )
+        message = message_generator.generate_message(all_weather, all_air)
         kakao_sender.send_to_me(access_token, message)
         logger.info("=== 브리핑 전송 완료 ===")
 
