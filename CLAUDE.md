@@ -1,0 +1,83 @@
+# CLAUDE.md
+
+아침 날씨 브리핑을 카카오톡으로 보내는 Python 자동화 에이전트입니다.
+
+## 실행 흐름
+
+```
+config 로드 → 카카오 토큰 갱신 확인 → [위치별] 격자 변환 + 날씨/대기질 수집
+→ Claude AI 브리핑 생성 → 카카오톡 전송
+```
+
+## 모듈 구조
+
+| 파일 | 역할 |
+|------|------|
+| `main.py` | 전체 파이프라인 오케스트레이션, 로깅 설정 |
+| `src/config_loader.py` | config.yaml 로드·검증·저장 (`ConfigError` 예외 포함) |
+| `src/grid_converter.py` | WGS84 위경도 → 기상청 격자 좌표 변환 (`latlon_to_grid`) |
+| `src/weather_fetcher.py` | 기상청 단기예보 API 호출, 시간별 날씨 수집 |
+| `src/air_quality_fetcher.py` | 에어코리아 API 호출, PM10/PM2.5 수집 |
+| `src/token_manager.py` | 카카오 OAuth2 토큰 자동 갱신 (30분 전 갱신, 7일 전 경고) |
+| `src/kakao_sender.py` | 카카오톡 "나에게 보내기" 전송 |
+| `src/message_generator.py` | Claude API 호출로 한국어 브리핑 생성 |
+| `scripts/kakao_auth.py` | 최초 1회 OAuth 인증 (access/refresh token 발급) |
+
+## 설정 파일 (config.yaml)
+
+`config.example.yaml`을 복사해 사용합니다. 필수 키:
+
+```yaml
+api_keys:
+  kma_service_key:        # 기상청 API
+  airkorea_service_key:   # 에어코리아 API
+  anthropic_api_key:      # Claude API
+
+locations:
+  - name: "집"
+    lat: 37.5172
+    lng: 127.0473
+    air_station: "강남구"
+
+kakao:
+  client_id:              # 카카오 REST API 키
+  redirect_uri:           # OAuth 콜백 주소
+  access_token:           # kakao_auth.py 실행 후 자동 저장
+  refresh_token:          # 동상
+  token_expires_at:       # 동상
+  refresh_token_expires_at: # 동상
+
+logging:
+  log_file: "logs/briefing.log"
+  max_bytes: 1048576
+  backup_count: 5
+```
+
+## 외부 API
+
+| API | 엔드포인트 | 인증 |
+|-----|-----------|------|
+| 기상청 단기예보 | `apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst` | serviceKey |
+| 에어코리아 | `apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty` | serviceKey |
+| 카카오 OAuth | `kauth.kakao.com/oauth/token` | client_id + refresh_token |
+| 카카오 메시지 | `kapi.kakao.com/v2/api/talk/memo/default/send` | Bearer token |
+| Claude API | `api.anthropic.com/v1/messages` | Bearer token |
+
+## 초기 설정 및 실행
+
+```bash
+# 최초 1회: 카카오 OAuth 인증
+python scripts/kakao_auth.py
+
+# 실행
+python main.py
+```
+
+## 규칙 및 주의사항
+
+- **`config.yaml`은 절대 커밋 금지** — API 키·토큰 포함, `.gitignore`에 등록됨
+- **토큰 갱신 로직**은 `src/token_manager.py`에만 둔다
+- **격자 변환**은 `src/grid_converter.py`의 `latlon_to_grid()`만 사용한다
+- **Claude API 호출**은 `src/message_generator.py`에만 위치, system_prompt의 `ephemeral` 캐시 설정을 제거하지 않는다
+- **로그 경로**는 config.yaml의 `logging.log_file` 값을 따른다 (하드코딩 금지)
+- config 저장은 반드시 `.tmp` 임시 파일 경유 후 원자적 교체 방식을 유지한다 (`src/config_loader.py` 참고)
