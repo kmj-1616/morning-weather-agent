@@ -92,7 +92,9 @@ git config core.hooksPath .githooks
 python main.py
 ```
 
-## Windows Task Scheduler 자동 실행 설정
+## 자동 실행 설정
+
+### Windows — Task Scheduler
 
 작업 스케줄러에서 새 작업을 만들고 아래와 같이 설정합니다.
 
@@ -102,6 +104,20 @@ python main.py
 | 프로그램/스크립트 | `C:\Python3x\python.exe` |
 | 인수 | `C:\Users\...\weather_briefing\main.py` |
 | 시작 위치 | `C:\Users\...\weather_briefing` |
+
+### macOS — cron
+
+```bash
+crontab -e
+```
+
+아래 줄을 추가합니다 (매일 오전 6:30 실행):
+
+```
+30 6 * * * /usr/bin/python3 /Users/사용자명/weather_briefing/main.py
+```
+
+python3 경로가 다를 경우 `which python3`으로 확인하세요.
 
 ## 아키텍처
 
