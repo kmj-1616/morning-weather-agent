@@ -1,0 +1,31 @@
+api_keys:
+  # data.go.kr > 마이페이지 > 인증키 관리 > 일반 인증키(디코딩) 값을 복사하세요
+  kma_service_key: "YOUR_KMA_SERVICE_KEY"
+  airkorea_service_key: "YOUR_AIRKOREA_SERVICE_KEY"
+  # https://console.anthropic.com 에서 발급
+  anthropic_api_key: "sk-ant-..."
+
+locations:
+  - name: "집"
+    lat: 37.5172        # 위도 (WGS84)
+    lng: 127.0473       # 경도 (WGS84)
+    air_station: "강남구"  # 에어코리아 측정소명 (airkorea.or.kr 에서 확인)
+  - name: "회사"
+    lat: 37.5665
+    lng: 126.9780
+    air_station: "종로구"
+
+kakao:
+  # https://developers.kakao.com > 내 애플리케이션 > 앱 키 > REST API 키
+  client_id: "YOUR_KAKAO_REST_API_KEY"
+  redirect_uri: "http://localhost:5000/callback"
+  # 아래 필드는 scripts/kakao_auth.py 실행 후 자동으로 채워집니다
+  access_token: ""
+  refresh_token: ""
+  token_expires_at: ""
+  refresh_token_expires_at: ""
+
+logging:
+  log_file: "logs/briefing.log"
+  max_bytes: 1048576   # 1MB
+  backup_count: 5
