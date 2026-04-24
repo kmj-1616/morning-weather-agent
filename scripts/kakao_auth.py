@@ -27,8 +27,9 @@ class _CallbackHandler(BaseHTTPRequestHandler):
         if "code" in params:
             _auth_code = params["code"][0]
             self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
-            self.wfile.write(b"<html><body><h2>인증 완료! 이 창을 닫아도 됩니다.</h2></body></html>")
+            self.wfile.write("<html><body><h2>인증 완료! 이 창을 닫아도 됩니다.</h2></body></html>".encode("utf-8"))
         else:
             self.send_response(400)
             self.end_headers()
@@ -68,16 +69,17 @@ def main():
         print("인증 코드를 받지 못했습니다. 다시 시도해주세요.")
         sys.exit(1)
 
-    resp = requests.post(
-        TOKEN_URL,
-        data={
-            "grant_type": "authorization_code",
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "code": _auth_code,
-        },
-        timeout=10,
-    )
+    client_secret = config["kakao"].get("client_secret", "")
+    token_data = {
+        "grant_type": "authorization_code",
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "code": _auth_code,
+    }
+    if client_secret:
+        token_data["client_secret"] = client_secret
+
+    resp = requests.post(TOKEN_URL, data=token_data, timeout=10)
     resp.raise_for_status()
     result = resp.json()
 

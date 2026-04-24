@@ -35,15 +35,16 @@ def _refresh_and_save(config: dict) -> None:
     if not refresh_token:
         raise RuntimeError("refresh_token이 없습니다. scripts/kakao_auth.py를 다시 실행하세요.")
 
-    resp = requests.post(
-        TOKEN_URL,
-        data={
-            "grant_type": "refresh_token",
-            "client_id": config["kakao"]["client_id"],
-            "refresh_token": refresh_token,
-        },
-        timeout=10,
-    )
+    token_data = {
+        "grant_type": "refresh_token",
+        "client_id": config["kakao"]["client_id"],
+        "refresh_token": refresh_token,
+    }
+    client_secret = config["kakao"].get("client_secret", "")
+    if client_secret:
+        token_data["client_secret"] = client_secret
+
+    resp = requests.post(TOKEN_URL, data=token_data, timeout=10)
     resp.raise_for_status()
     result = resp.json()
 

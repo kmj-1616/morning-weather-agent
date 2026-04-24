@@ -5,6 +5,25 @@ import requests
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty"
+NEARBY_STATION_URL = "https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList"
+
+
+def find_nearest_station(tm_x: float, tm_y: float, airkorea_key: str) -> str:
+    params = {
+        "serviceKey": airkorea_key,
+        "returnType": "json",
+        "tmX": tm_x,
+        "tmY": tm_y,
+        "ver": "1.1",
+    }
+    resp = requests.get(NEARBY_STATION_URL, params=params, timeout=10)
+    resp.raise_for_status()
+    items = resp.json()["response"]["body"]["items"]
+    if not items:
+        raise ValueError("근처 측정소를 찾을 수 없습니다.")
+    station = items[0]["stationName"]
+    logger.info(f"가장 가까운 측정소: {station}")
+    return station
 GRADE_MAP = {"1": "좋음", "2": "보통", "3": "나쁨", "4": "매우나쁨"}
 
 
