@@ -16,7 +16,6 @@
 - **카카오톡 전송**: 나에게 보내기 기능으로 자동 전송
 - **OAuth2 토큰 자동 갱신**: 만료 30분 전 자동 갱신, 7일 전 경고
 - **Windows Task Scheduler 연동**: 매일 아침 자동 실행 가능
-- **Retrobot**: 커밋마다 Claude AI가 KPT 회고를 자동 생성해 `retros/`에 저장
 
 ## 브리핑 예시
 
@@ -145,14 +144,6 @@ python scripts/kakao_auth.py
 
 브라우저가 열리면 카카오 계정으로 로그인 후 동의합니다. 완료되면 토큰이 config.yaml에 자동 저장됩니다.
 
-### 4. Git hooks 활성화
-
-```bash
-git config core.hooksPath .githooks
-```
-
-커밋마다 Retrobot이 자동으로 회고를 생성합니다. **clone 후 1회 실행 필요.**
-
 ## 실행
 
 ```bash
@@ -213,11 +204,6 @@ weather_briefing/
 ├── config.yaml              # 실제 설정 (git 제외)
 ├── config.example.yaml      # 설정 예제 템플릿
 ├── requirements.txt
-├── .githooks/
-│   └── post-commit          # Retrobot hook
-├── retrobot/
-│   └── SKILL.md             # Retrobot AI 지침
-├── retros/                  # 자동 생성 회고 파일
 ├── scripts/
 │   └── kakao_auth.py        # 최초 1회 OAuth 인증
 ├── src/
