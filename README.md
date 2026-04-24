@@ -19,21 +19,47 @@
 ## 사전 요구사항
 
 - Python 3.9 이상
-- 아래 API 키 4종:
+- 아래 API 키 3종:
 
-| API | 발급처 |
-|-----|--------|
-| 기상청 단기예보 API 키 | [data.go.kr](https://www.data.go.kr) |
-| 에어코리아 API 키 | [data.go.kr](https://www.data.go.kr) |
-| 카카오 REST API 키 | [developers.kakao.com](https://developers.kakao.com) |
+| API                            | 발급처                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| 기상청 단기예보 조회 API 키    | [data.go.kr](https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15084084) |
+| 에어코리아 대기오염정보 API 키 | [data.go.kr](https://www.data.go.kr/data/15073861/openapi.do)                                 |
+| 카카오 REST API 키             | [developers.kakao.com](https://developers.kakao.com)                                          |
 
 - **Claude Pro/Max 구독** 및 `claude login` 완료 상태 필요 (API 키 불필요)
+
+## API 키 발급
+
+### 기상청 단기예보 API
+
+1. [공공데이터포털](https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15084084) 접속 → 로그인
+2. **활용신청** 버튼 클릭 → 활용 목적 입력 후 제출
+3. 자동 승인 (수 분~1시간 소요)
+4. **마이페이지 → 개발계정** → `Encoding` 키 복사
+5. `config.yaml`의 `api_keys.kma_service_key`에 입력
+
+### 에어코리아 대기오염정보 API
+
+1. [공공데이터포털](https://www.data.go.kr/data/15073861/openapi.do) 접속 → 로그인
+2. **"한국환경공단\_에어코리아\_대기오염정보"** 항목에서 **활용신청**
+   - 이 서비스가 `측정소별 실시간 측정정보 조회(getMsrstnAcctoRltmMesureDnsty)` 오퍼레이션을 포함합니다
+3. **마이페이지 → 개발계정** → `Encoding` 키 복사
+4. `config.yaml`의 `api_keys.airkorea_service_key`에 입력
+
+### 카카오 REST API 키
+
+1. [developers.kakao.com](https://developers.kakao.com) 접속 → 카카오 계정 로그인
+2. **내 애플리케이션 → 애플리케이션 추가하기** → 앱 이름 입력 후 저장
+3. 생성된 앱 클릭 → 앱 → 플랫폼 키 → **REST API 키** 복사 → `config.yaml`의 `kakao.client_id`에 입력
+4. **카카오 로그인 리다이렉트 URI** 에 `http://localhost:5000/callback` 등록
+5. **제품 설정 → 카카오 로그인** → 활성화 ON
+6. **동의항목** → `카카오톡 메시지 전송` 이용중동의 설정
 
 ## 설치
 
 ```bash
 git clone https://github.com/kwonmijeong/weather-briefing.git
-cd weather-briefing
 pip install -r requirements.txt
 npm install -g @anthropic-ai/claude-code
 claude login
@@ -51,14 +77,14 @@ cp config.example.yaml config.yaml
 
 ```yaml
 api_keys:
-  kma_service_key: "기상청_API_키"
-  airkorea_service_key: "에어코리아_API_키"
+  kma_service_key: "기상청_단기예보조회서비스_API_키"
+  airkorea_service_key: "한국환경공단_에어코리아_대기오염정보_API_키"
 
 locations:
   - name: "집"
-    lat: 37.5172        # 위도 (WGS84)
-    lng: 127.0473       # 경도 (WGS84)
-    air_station: "강남구"  # 에어코리아 측정소명
+    lat: 37.5172 # 위도 (WGS84)
+    lng: 127.0473 # 경도 (WGS84)
+    air_station: "강남구" # 에어코리아 측정소명
 
 kakao:
   client_id: "카카오_REST_API_키"
@@ -98,12 +124,12 @@ python main.py
 
 작업 스케줄러에서 새 작업을 만들고 아래와 같이 설정합니다.
 
-| 항목 | 값 |
-|------|-----|
-| 트리거 | 매일 오전 6:30 (원하는 시간) |
-| 프로그램/스크립트 | `C:\Python3x\python.exe` |
-| 인수 | `C:\Users\...\weather_briefing\main.py` |
-| 시작 위치 | `C:\Users\...\weather_briefing` |
+| 항목              | 값                                      |
+| ----------------- | --------------------------------------- |
+| 트리거            | 매일 오전 6:30 (원하는 시간)            |
+| 프로그램/스크립트 | `C:\Python3x\python.exe`                |
+| 인수              | `C:\Users\...\weather_briefing\main.py` |
+| 시작 위치         | `C:\Users\...\weather_briefing`         |
 
 ### macOS — cron
 
@@ -164,12 +190,12 @@ weather_briefing/
 
 ## 의존성
 
-| 패키지 | 버전 | 용도 |
-|--------|------|------|
-| requests | ≥2.31.0 | HTTP API 호출 |
+| 패키지    | 버전    | 용도                  |
+| --------- | ------- | --------------------- |
+| requests  | ≥2.31.0 | HTTP API 호출         |
 | anthropic | ≥0.25.0 | Claude API 클라이언트 |
-| pyyaml | ≥6.0.1 | 설정 파일 파싱 |
-| pytz | ≥2024.1 | 한국 시간대(KST) 처리 |
+| pyyaml    | ≥6.0.1  | 설정 파일 파싱        |
+| pytz      | ≥2024.1 | 한국 시간대(KST) 처리 |
 
 ## 보안
 
