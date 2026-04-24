@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 from src import (
     air_quality_fetcher,
     config_loader,
+    geocoder,
     grid_converter,
     kakao_sender,
     message_generator,
@@ -52,6 +53,15 @@ def main() -> None:
         all_air = []
 
         for loc in config["locations"]:
+            if "address" in loc and ("lat" not in loc or "lng" not in loc):
+                loc["lat"], loc["lng"] = geocoder.address_to_latlon(
+                    loc["address"], config["kakao"]["client_id"]
+                )
+            if "air_station" not in loc:
+                tm_x, tm_y = geocoder.wgs84_to_tm(loc["lat"], loc["lng"])
+                loc["air_station"] = air_quality_fetcher.find_nearest_station(
+                    tm_x, tm_y, config["api_keys"]["airkorea_service_key"]
+                )
             nx, ny = grid_converter.latlon_to_grid(loc["lat"], loc["lng"])
             weather = weather_fetcher.fetch(config, nx, ny, loc["name"])
             air = air_quality_fetcher.fetch(config, loc["air_station"], loc["name"])

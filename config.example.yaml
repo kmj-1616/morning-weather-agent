@@ -5,13 +5,14 @@ api_keys:
 
 locations:
   - name: "집"
-    lat: 37.5172        # 위도 (WGS84)
-    lng: 127.0473       # 경도 (WGS84)
-    air_station: "강남구"  # 에어코리아 측정소명 (airkorea.or.kr 에서 확인)
+    address: "서울시 강남구 테헤란로 1" # 주소 → lat/lng 자동 변환 (kakao REST API 키 사용)
+    # lat/lng를 직접 입력하면 address 대신 사용됩니다
+    # lat: 37.5172
+    # lng: 127.0473
+    # air_station 생략 시 위치 기반으로 가장 가까운 측정소 자동 선택
+    # air_station: "강남구"
   - name: "회사"
-    lat: 37.5665
-    lng: 126.9780
-    air_station: "종로구"
+    address: "서울시 종로구 세종대로 1"
 
 kakao:
   # https://developers.kakao.com > 내 애플리케이션 > 앱 키 > REST API 키
@@ -25,5 +26,5 @@ kakao:
 
 logging:
   log_file: "logs/briefing.log"
-  max_bytes: 1048576   # 1MB
+  max_bytes: 1048576 # 1MB
   backup_count: 5
