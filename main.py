@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).parent
@@ -64,9 +65,11 @@ def main() -> None:
                 )
             nx, ny = grid_converter.latlon_to_grid(loc["lat"], loc["lng"])
             weather = weather_fetcher.fetch(config, nx, ny, loc["name"])
+            time.sleep(2)
             air = air_quality_fetcher.fetch(config, loc["air_station"], loc["name"])
             all_weather.append(weather)
             all_air.append(air)
+            time.sleep(2)
 
         message = message_generator.generate_message(all_weather, all_air)
         kakao_sender.send_to_me(access_token, message)
