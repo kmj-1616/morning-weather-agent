@@ -15,7 +15,7 @@
   - PM2.5 "나쁨" 이상 시 마스크 권고
 - **카카오톡 전송**: 나에게 보내기 기능으로 자동 전송
 - **OAuth2 토큰 자동 갱신**: 만료 30분 전 자동 갱신, 7일 전 경고
-- **Windows Task Scheduler 연동**: 매일 아침 자동 실행 가능
+- **자동 실행**: macOS cron / Windows Task Scheduler로 매일 아침 자동 실행 가능
 
 ## 브리핑 예시
 
@@ -203,7 +203,7 @@ main.py
 ## 디렉토리 구조
 
 ```
-weather_briefing/
+morning-weather-agent/
 ├── main.py                  # 엔트리포인트
 ├── config.yaml              # 실제 설정 (git 제외)
 ├── config.example.yaml      # 설정 예제 템플릿
@@ -224,12 +224,11 @@ weather_briefing/
 
 ## 의존성
 
-| 패키지    | 버전    | 용도                  |
-| --------- | ------- | --------------------- |
-| requests  | ≥2.31.0 | HTTP API 호출         |
-| anthropic | ≥0.25.0 | Claude API 클라이언트 |
-| pyyaml    | ≥6.0.1  | 설정 파일 파싱        |
-| pytz      | ≥2024.1 | 한국 시간대(KST) 처리 |
+| 패키지   | 버전    | 용도                  |
+| -------- | ------- | --------------------- |
+| requests | ≥2.31.0 | HTTP API 호출         |
+| pyyaml   | ≥6.0.1  | 설정 파일 파싱        |
+| pytz     | ≥2024.1 | 한국 시간대(KST) 처리 |
 
 ## 보안
 
