@@ -172,10 +172,14 @@ crontab -e
 아래 줄을 추가합니다 (매일 오전 6:30 실행):
 
 ```
-30 6 * * * /usr/bin/python3 /Users/사용자명/weather_briefing/main.py
+30 6 * * * /Users/사용자명/.pyenv/versions/3.x.x/bin/python3 /Users/사용자명/morning-weather-agent/main.py
 ```
 
-python3 경로가 다를 경우 `which python3`으로 확인하세요.
+> **pyenv 사용 시 주의**: cron은 셸 프로파일을 로드하지 않아 `which python3`으로 나오는 shim 경로(`~/.pyenv/shims/python3`)가 동작하지 않습니다. 실제 Python 경로를 사용해야 합니다.
+> ```bash
+> ls ~/.pyenv/versions/  # 설치된 버전 확인
+> # 예: /Users/사용자명/.pyenv/versions/3.11.9/bin/python3
+> ```
 
 ## 아키텍처
 
