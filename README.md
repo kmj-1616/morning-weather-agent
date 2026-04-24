@@ -7,9 +7,11 @@
 - **날씨 수집**: 기상청 단기예보 API — 시간별 기온, 강수확률, 하늘상태, 습도, 풍속
 - **대기질 수집**: 에어코리아 API — PM10, PM2.5 농도 및 등급
 - **다중 위치 지원**: 집, 회사 등 여러 위치를 한 번에 처리
-- **AI 브리핑 생성**: Claude AI(claude-sonnet-4-6)가 300자 이내 카카오톡 최적화 브리핑 작성
-  - 기온에 따른 옷차림 추천 (8단계)
-  - 강수확률 50% 이상 시 우산 권고
+- **주소 자동 변환**: 주소 입력 시 카카오 로컬 API로 위경도 자동 변환, 가장 가까운 에어코리아 측정소 자동 탐색
+- **AI 브리핑 생성**: Claude AI가 400자 이내 카카오톡 최적화 브리핑 작성
+  - 집(아침/저녁) · 회사(9~18시) 스케줄 기반 날씨 분석
+  - 출퇴근 시간대(7~9시, 18~20시) 강수확률 기반 우산 권고
+  - 아침 최저기온 + 낮 최고기온을 고려한 옷차림 추천 (8단계)
   - PM2.5 "나쁨" 이상 시 마스크 권고
 - **카카오톡 전송**: 나에게 보내기 기능으로 자동 전송
 - **OAuth2 토큰 자동 갱신**: 만료 30분 전 자동 갱신, 7일 전 경고
@@ -82,9 +84,14 @@ api_keys:
 
 locations:
   - name: "집"
-    lat: 37.5172 # 위도 (WGS84)
-    lng: 127.0473 # 경도 (WGS84)
-    air_station: "강남구" # 에어코리아 측정소명
+    address: "서울시 강남구 테헤란로 1"   # 주소 입력 시 위경도 자동 변환
+    # 위경도를 직접 입력하면 address 대신 사용됩니다
+    # lat: 37.5172
+    # lng: 127.0473
+    # air_station 생략 시 위치 기반으로 가장 가까운 측정소 자동 선택
+    # air_station: "강남구"
+  - name: "회사"
+    address: "서울시 종로구 세종대로 1"
 
 kakao:
   client_id: "카카오_REST_API_키"
@@ -95,6 +102,8 @@ logging:
   max_bytes: 1048576
   backup_count: 5
 ```
+
+> **locations 순서**: 첫 번째 항목을 집(아침/저녁 기준), 두 번째 항목을 회사(9~18시 기준)로 인식합니다.
 
 ### 3. 카카오 OAuth 최초 인증 (1회)
 
@@ -154,6 +163,8 @@ main.py
   ├─ token_manager      카카오 OAuth 토큰 자동 갱신
   │
   ├─ [위치별 반복]
+  │    ├─ geocoder          주소 → 위경도 (카카오 로컬 API)
+  │    │                    위경도 → TM 좌표 → 가까운 측정소 탐색
   │    ├─ grid_converter    위경도 → 기상청 격자 좌표
   │    ├─ weather_fetcher   기상청 단기예보 API
   │    └─ air_quality_fetcher  에어코리아 API
@@ -179,6 +190,7 @@ weather_briefing/
 │   └── kakao_auth.py        # 최초 1회 OAuth 인증
 ├── src/
 │   ├── config_loader.py
+│   ├── geocoder.py
 │   ├── grid_converter.py
 │   ├── weather_fetcher.py
 │   ├── air_quality_fetcher.py
