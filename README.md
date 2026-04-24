@@ -54,9 +54,11 @@
 1. [developers.kakao.com](https://developers.kakao.com) 접속 → 카카오 계정 로그인
 2. **내 애플리케이션 → 애플리케이션 추가하기** → 앱 이름 입력 후 저장
 3. 생성된 앱 클릭 → 앱 → 플랫폼 키 → **REST API 키** 복사 → `config.yaml`의 `kakao.client_id`에 입력
-4. **카카오 로그인 리다이렉트 URI** 에 `http://localhost:5000/callback` 등록
-5. **제품 설정 → 카카오 로그인** → 활성화 ON
-6. **동의항목** → `카카오톡 메시지 전송` 이용중동의 설정
+4. **카카오 로그인 리다이렉트 URI** 에 `http://localhost:8080/callback` 등록
+   - **앱 → 플랫폼 키 → REST API 키 → 클라이언트 시크릿**이 활성화되어 있다면 시크릿 코드를 `config.yaml`의 `kakao.client_secret`에 추가
+5. **제품 설정 → 카카오 로그인 → 일반** → 사용 설정 ON
+6. **제품 설정 → 카카오맵** → 활성화 ON (주소 기반 위경도 변환에 필요)
+7. **동의항목** → `카카오톡 메시지 전송` → 이용중동의 설정
 
 ## 설치
 
@@ -84,7 +86,7 @@ api_keys:
 
 locations:
   - name: "집"
-    address: "서울시 강남구 테헤란로 1"   # 주소 입력 시 위경도 자동 변환
+    address: "서울시 강남구 테헤란로 1" # 주소 입력 시 위경도 자동 변환
     # 위경도를 직접 입력하면 address 대신 사용됩니다
     # lat: 37.5172
     # lng: 127.0473
@@ -95,7 +97,7 @@ locations:
 
 kakao:
   client_id: "카카오_REST_API_키"
-  redirect_uri: "http://localhost:5000/callback"
+  redirect_uri: "http://localhost:8080/callback"
 
 logging:
   log_file: "logs/briefing.log"
