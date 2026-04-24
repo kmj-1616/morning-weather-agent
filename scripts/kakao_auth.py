@@ -28,7 +28,7 @@ class _CallbackHandler(BaseHTTPRequestHandler):
             _auth_code = params["code"][0]
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"<html><body><h2>인증 완료! 이 창을 닫아도 됩니다.</h2></body></html>")
+            self.wfile.write("<html><body><h2>인증 완료! 이 창을 닫아도 됩니다.</h2></body></html>".encode("utf-8"))
         else:
             self.send_response(400)
             self.end_headers()
