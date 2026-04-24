@@ -21,13 +21,14 @@
 ## 사전 요구사항
 
 - Python 3.9 이상
-- 아래 API 키 3종:
+- 아래 API 키 4종:
 
-| API                            | 발급처                                                                                        |
-| ------------------------------ | --------------------------------------------------------------------------------------------- |
-| 기상청 단기예보 조회 API 키    | [data.go.kr](https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15084084) |
-| 에어코리아 대기오염정보 API 키 | [data.go.kr](https://www.data.go.kr/data/15073861/openapi.do)                                 |
-| 카카오 REST API 키             | [developers.kakao.com](https://developers.kakao.com)                                          |
+| API                            | 발급처                                                                                              |
+| ------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 기상청 단기예보 조회 API 키    | [data.go.kr](https://www.data.go.kr/tcs/dss/selectApiDataDetailView.do?publicDataPk=15084084)       |
+| 에어코리아 대기오염정보 API 키 | [data.go.kr](https://www.data.go.kr/data/15073861/openapi.do)                                       |
+| 에어코리아 측정소정보 API 키   | [data.go.kr](https://www.data.go.kr/data/15073877/openapi.do) — 가장 가까운 측정소 자동 탐색에 필요 |
+| 카카오 REST API 키             | [developers.kakao.com](https://developers.kakao.com)                                                |
 
 - **Claude Pro/Max 구독** 및 `claude login` 완료 상태 필요 (API 키 불필요)
 
@@ -45,9 +46,18 @@
 
 1. [공공데이터포털](https://www.data.go.kr/data/15073861/openapi.do) 접속 → 로그인
 2. **"한국환경공단\_에어코리아\_대기오염정보"** 항목에서 **활용신청**
-   - 이 서비스가 `측정소별 실시간 측정정보 조회(getMsrstnAcctoRltmMesureDnsty)` 오퍼레이션을 포함합니다
+   - `측정소별 실시간 측정정보 조회(getMsrstnAcctoRltmMesureDnsty)` 오퍼레이션 포함
 3. **마이페이지 → 개발계정** → `Encoding` 키 복사
 4. `config.yaml`의 `api_keys.airkorea_service_key`에 입력
+
+### 에어코리아 측정소정보 API
+
+주소 기반으로 가장 가까운 측정소를 자동 탐색하는 데 사용합니다.
+
+1. [공공데이터포털](https://www.data.go.kr/data/15073877/openapi.do) 접속 → 로그인
+2. **"한국환경공단\_에어코리아\_측정소정보"** 항목에서 **활용신청**
+   - `근접측정소 목록 조회(getNearbyMsrstnList)` 오퍼레이션 포함
+3. 승인 후 기존 `airkorea_service_key`와 동일한 키로 자동 동작 (별도 입력 불필요)
 
 ### 카카오 REST API 키
 
@@ -97,6 +107,7 @@ locations:
 
 kakao:
   client_id: "카카오_REST_API_키"
+  client_secret: "클라이언트_시크릿_코드" # 활성화한 경우에만 입력
   redirect_uri: "http://localhost:8080/callback"
 
 logging:
