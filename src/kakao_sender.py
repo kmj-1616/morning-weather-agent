@@ -19,7 +19,7 @@ def send_to_me(access_token: str, message_text: str) -> None:
         "Content-Type": "application/x-www-form-urlencoded",
     }
     data = {"template_object": json.dumps(template, ensure_ascii=False)}
-    resp = requests.post(SEND_URL, headers=headers, data=data.encode("utf-8"), timeout=10)
+    resp = requests.post(SEND_URL, headers=headers, data=data, timeout=10)
     resp.raise_for_status()
     result = resp.json()
     if result.get("result_code") != 0:
