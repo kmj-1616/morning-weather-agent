@@ -16,7 +16,7 @@
   - PM2.5 "나쁨" 이상 시 마스크 권고
 - **카카오톡 전송**: 나에게 보내기 기능으로 자동 전송
 - **OAuth2 토큰 자동 갱신**: 만료 30분 전 자동 갱신, 7일 전 경고
-- **자동 실행**: macOS cron / Windows Task Scheduler로 매일 아침 자동 실행 가능
+- **자동 실행**: macOS launchd + pmset / Windows Task Scheduler로 매일 아침 자동 실행 — 잠자기 상태에서 자동 깨우기 및 전송 후 자동 재잠자기 지원
 
 ## 브리핑 예시
 
@@ -153,6 +153,55 @@ python main.py
 
 ## 자동 실행 설정
 
+### macOS — launchd + pmset (권장)
+
+cron은 Mac이 잠자기 상태일 때 예약을 건너뛰므로 사용하지 않습니다.  
+**launchd**로 스케줄을 관리하고, **pmset**으로 실행 전 Mac을 자동으로 깨웁니다.  
+브리핑 전송이 완료되면 Mac이 자동으로 다시 잠자기 상태로 돌아갑니다.
+
+**실행 흐름**
+
+```
+06:25  pmset → Mac 자동 깨우기
+06:30  launchd → run_briefing.sh 실행
+         └─ 날씨·대기질 수집 → AI 브리핑 생성 → 카카오톡 전송
+완료+30초  osascript → Mac 자동 잠자기
+```
+
+#### 1단계 — 실행 권한 부여 및 plist 설치
+
+```bash
+chmod +x ~/weather_briefing/scripts/run_briefing.sh
+
+cp ~/weather_briefing/com.weather-briefing.plist \
+   ~/Library/LaunchAgents/
+
+launchctl load ~/Library/LaunchAgents/com.weather-briefing.plist
+```
+
+#### 2단계 — 매일 6:25 자동 깨우기 설정
+
+```bash
+sudo pmset repeat wake MTWRFSU 06:25:00
+```
+
+설정 확인: `pmset -g sched`
+
+#### 3단계 — 즉시 테스트
+
+```bash
+launchctl start com.weather-briefing
+```
+
+로그 확인: `logs/launchd.log` / `logs/launchd_err.log`
+
+#### 주의사항
+
+- **pyenv 미사용 시**: `scripts/run_briefing.sh`의 `eval "$(pyenv init -)"` 줄은 무시됩니다 (오류 없이 넘어감).
+- **배터리 전원 시 깨우기**: 시스템 설정 → 배터리 → "네트워크 접근 시 깨우기" 또는 "전원 어댑터" 탭에서 깨우기 관련 옵션을 활성화해야 pmset wake가 동작합니다.
+- **잠자기 타이밍**: `main.py` 종료 후 30초 뒤 잠자기가 실행됩니다. 스크립트 실패 시에도 잠자기는 동작합니다.
+- **launchd catch-up**: Mac이 06:30에 깨어 있지 않아도, 이후 깨어날 때 당일 미실행 작업을 즉시 실행합니다.
+
 ### Windows — Task Scheduler
 
 작업 스케줄러에서 새 작업을 만들고 아래와 같이 설정합니다.
@@ -163,24 +212,6 @@ python main.py
 | 프로그램/스크립트 | `C:\Python3x\python.exe`                |
 | 인수              | `C:\Users\...\weather_briefing\main.py` |
 | 시작 위치         | `C:\Users\...\weather_briefing`         |
-
-### macOS — cron
-
-```bash
-crontab -e
-```
-
-아래 줄을 추가합니다 (매일 오전 6:30 실행):
-
-```
-30 6 * * * /Users/사용자명/.pyenv/versions/3.x.x/bin/python3 /Users/사용자명/morning-weather-agent/main.py
-```
-
-> **pyenv 사용 시 주의**: cron은 셸 프로파일을 로드하지 않아 `which python3`으로 나오는 shim 경로(`~/.pyenv/shims/python3`)가 동작하지 않습니다. 실제 Python 경로를 사용해야 합니다.
-> ```bash
-> ls ~/.pyenv/versions/  # 설치된 버전 확인
-> # 예: /Users/사용자명/.pyenv/versions/3.11.9/bin/python3
-> ```
 
 ## 아키텍처
 
@@ -205,12 +236,14 @@ main.py
 
 ```
 morning-weather-agent/
-├── main.py                  # 엔트리포인트
-├── config.yaml              # 실제 설정 (git 제외)
-├── config.example.yaml      # 설정 예제 템플릿
+├── main.py                      # 엔트리포인트
+├── config.yaml                  # 실제 설정 (git 제외)
+├── config.example.yaml          # 설정 예제 템플릿
 ├── requirements.txt
+├── com.weather-briefing.plist   # macOS launchd 스케줄 설정
 ├── scripts/
-│   └── kakao_auth.py        # 최초 1회 OAuth 인증
+│   ├── kakao_auth.py            # 최초 1회 OAuth 인증
+│   └── run_briefing.sh          # macOS launchd 실행 래퍼 (pyenv 경로 처리 + 잠자기)
 ├── src/
 │   ├── config_loader.py
 │   ├── geocoder.py
@@ -220,7 +253,7 @@ morning-weather-agent/
 │   ├── token_manager.py
 │   ├── kakao_sender.py
 │   └── message_generator.py
-└── logs/                    # 런타임 로그 (git 제외)
+└── logs/                        # 런타임 로그 (git 제외)
 ```
 
 ## 의존성
