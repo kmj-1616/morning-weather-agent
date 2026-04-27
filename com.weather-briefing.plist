@@ -9,7 +9,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/YOUR_USERNAME/weather_briefing/scripts/run_briefing.sh</string>
+    <string>/Users/YOUR_USERNAME/morning-weather-agent/scripts/run_briefing.sh</string>
   </array>
 
   <key>StartCalendarInterval</key>
@@ -21,9 +21,9 @@
   </dict>
 
   <key>StandardOutPath</key>
-  <string>/Users/YOUR_USERNAME/weather_briefing/logs/launchd.log</string>
+  <string>/Users/YOUR_USERNAME/morning-weather-agent/logs/launchd.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/YOUR_USERNAME/weather_briefing/logs/launchd_err.log</string>
+  <string>/Users/YOUR_USERNAME/morning-weather-agent/logs/launchd_err.log</string>
 
   <key>RunAtLoad</key>
   <false/>
