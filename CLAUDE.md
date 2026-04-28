@@ -24,7 +24,7 @@ config 로드 → 카카오 토큰 갱신 확인
 | `src/kakao_sender.py` | 카카오톡 "나에게 보내기" 전송 |
 | `src/message_generator.py` | Claude CLI 호출로 한국어 브리핑 생성 |
 | `scripts/kakao_auth.py` | 최초 1회 OAuth 인증 (access/refresh token 발급) |
-| `scripts/run_briefing.sh` | macOS launchd 실행 래퍼 — pyenv 경로 설정, 전송 후 자동 잠자기 |
+| `scripts/run_briefing.sh` | macOS launchd 실행 래퍼 — pyenv·homebrew 경로 설정, 전송 후 claude 프로세스 정리 및 자동 잠자기 |
 | `com.weather-briefing.plist` | macOS launchd 스케줄 설정 (매일 원하는 시각 실행) |
 
 ## 설정 파일 (config.yaml)
