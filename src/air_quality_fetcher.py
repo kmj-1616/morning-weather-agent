@@ -1,3 +1,4 @@
+import concurrent.futures
 import logging
 
 import requests
@@ -6,6 +7,16 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = "https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty"
 NEARBY_STATION_URL = "https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList"
+_TOTAL_TIMEOUT = 30
+
+
+def _get(url: str, params: dict) -> requests.Response:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(requests.get, url, params=params, timeout=10)
+        try:
+            return future.result(timeout=_TOTAL_TIMEOUT)
+        except concurrent.futures.TimeoutError:
+            raise requests.exceptions.Timeout(f"API 총 요청 시간 초과 ({_TOTAL_TIMEOUT}초): {url}")
 
 
 def find_nearest_station(tm_x: float, tm_y: float, airkorea_key: str) -> str:
@@ -16,7 +27,7 @@ def find_nearest_station(tm_x: float, tm_y: float, airkorea_key: str) -> str:
         "tmY": tm_y,
         "ver": "1.1",
     }
-    resp = requests.get(NEARBY_STATION_URL, params=params, timeout=10)
+    resp = _get(NEARBY_STATION_URL, params)
     resp.raise_for_status()
     items = resp.json()["response"]["body"]["items"]
     if not items:
@@ -46,7 +57,7 @@ def fetch(config: dict, station_name: str, location_name: str) -> dict:
         "dataTerm": "DAILY",
         "ver": "1.0",
     }
-    resp = requests.get(BASE_URL, params=params, timeout=10)
+    resp = _get(BASE_URL, params)
     resp.raise_for_status()
     data = resp.json()
 

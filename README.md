@@ -162,10 +162,10 @@ python main.py
 **실행 흐름**
 
 ```
-원하는시간-5분  pmset → Mac 자동 깨우기
-원하는시간      launchd → run_briefing.sh 실행
-                  └─ 날씨·대기질 수집 → AI 브리핑 생성 → 카카오톡 전송
-완료+30초        osascript → Mac 자동 잠자기
+원하는시간-15분  pmset → Mac 자동 깨우기
+원하는시간       launchd → run_briefing.sh 실행
+                   └─ 날씨·대기질 수집 → AI 브리핑 생성 → 카카오톡 전송
+완료+30초         osascript → Mac 자동 잠자기
 ```
 
 > 시간 변경 시 `com.weather-briefing.plist`의 `Hour` / `Minute` 값과 `pmset` 명령의 시각을 함께 수정하세요.
@@ -186,10 +186,10 @@ sed "s|/Users/YOUR_USERNAME/morning-weather-agent|$(pwd)|g" \
 launchctl load ~/Library/LaunchAgents/com.weather-briefing.plist
 ```
 
-#### 2단계 — 매일 6:25 자동 깨우기 설정
+#### 2단계 — 매일 6:15 자동 깨우기 설정
 
 ```bash
-sudo pmset repeat wake MTWRFSU 06:25:00
+sudo pmset repeat wake MTWRFSU 06:15:00
 ```
 
 설정 확인: `pmset -g sched`

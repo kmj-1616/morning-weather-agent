@@ -1,3 +1,4 @@
+import concurrent.futures
 import logging
 from datetime import datetime, timedelta
 
@@ -8,6 +9,16 @@ logger = logging.getLogger(__name__)
 
 KST = pytz.timezone("Asia/Seoul")
 BASE_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
+_TOTAL_TIMEOUT = 30
+
+
+def _get(url: str, params: dict) -> requests.Response:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(requests.get, url, params=params, timeout=10)
+        try:
+            return future.result(timeout=_TOTAL_TIMEOUT)
+        except concurrent.futures.TimeoutError:
+            raise requests.exceptions.Timeout(f"API 총 요청 시간 초과 ({_TOTAL_TIMEOUT}초): {url}")
 BASE_HOURS = [2, 5, 8, 11, 14, 17, 20, 23]
 
 SKY_MAP = {"1": "맑음", "3": "구름많음", "4": "흐림"}
@@ -38,7 +49,7 @@ def fetch(config: dict, nx: int, ny: int, location_name: str) -> dict:
         "nx": nx,
         "ny": ny,
     }
-    resp = requests.get(BASE_URL, params=params, timeout=10)
+    resp = _get(BASE_URL, params)
     resp.raise_for_status()
     data = resp.json()
 
