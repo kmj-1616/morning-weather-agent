@@ -10,15 +10,25 @@ logger = logging.getLogger(__name__)
 KST = pytz.timezone("Asia/Seoul")
 BASE_URL = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
 _TOTAL_TIMEOUT = 30
+_RETRIES = 2
 
 
 def _get(url: str, params: dict) -> requests.Response:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    last_exc: Exception | None = None
+    for attempt in range(_RETRIES):
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         future = executor.submit(requests.get, url, params=params, timeout=10)
         try:
             return future.result(timeout=_TOTAL_TIMEOUT)
         except concurrent.futures.TimeoutError:
-            raise requests.exceptions.Timeout(f"API 총 요청 시간 초과 ({_TOTAL_TIMEOUT}초): {url}")
+            last_exc = requests.exceptions.Timeout(f"API 총 요청 시간 초과 ({_TOTAL_TIMEOUT}초): {url}")
+        except requests.exceptions.RequestException as e:
+            last_exc = e
+        finally:
+            executor.shutdown(wait=False)
+        if attempt < _RETRIES - 1:
+            logger.warning(f"날씨 API 요청 실패, 재시도 중... ({url})")
+    raise last_exc
 BASE_HOURS = [2, 5, 8, 11, 14, 17, 20, 23]
 
 SKY_MAP = {"1": "맑음", "3": "구름많음", "4": "흐림"}
