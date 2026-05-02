@@ -5,6 +5,9 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+_TIMEOUT = 60
+_RETRIES = 3
+
 SYSTEM_PROMPT = """당신은 친절한 아침 날씨 브리핑 도우미입니다.
 주어진 날씨와 미세먼지 데이터를 바탕으로, 사용자에게 오늘 하루 준비에 필요한 정보를
 자연스럽고 따뜻한 한국어로 전달해주세요.
@@ -84,26 +87,36 @@ def generate_message(weather_list: list[dict], air_list: list[dict]) -> str:
     data_summary = _format_data(weather_list, air_list)
     full_prompt = prompt + "\n\n" + data_summary
 
-    try:
-        result = subprocess.run(
-            ["claude", "-p", full_prompt],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=60,
-            shell=(sys.platform == "win32"),
-        )
-    except FileNotFoundError:
-        raise RuntimeError(
-            "claude CLI를 찾을 수 없습니다. "
-            "'npm install -g @anthropic-ai/claude-code' 후 'claude login'을 실행하세요."
-        )
-    except subprocess.TimeoutExpired:
-        raise RuntimeError("claude CLI 응답 시간 초과 (60초)")
+    last_exc: Exception | None = None
+    for attempt in range(_RETRIES):
+        try:
+            result = subprocess.run(
+                ["claude", "-p", full_prompt],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=_TIMEOUT,
+                shell=(sys.platform == "win32"),
+            )
+        except FileNotFoundError:
+            raise RuntimeError(
+                "claude CLI를 찾을 수 없습니다. "
+                "'npm install -g @anthropic-ai/claude-code' 후 'claude login'을 실행하세요."
+            )
+        except subprocess.TimeoutExpired:
+            last_exc = RuntimeError(f"claude CLI 응답 시간 초과 ({_TIMEOUT}초)")
+            if attempt < _RETRIES - 1:
+                logger.warning(f"Claude 응답 시간 초과, 재시도 중... ({attempt + 1}/{_RETRIES - 1})")
+            continue
 
-    if result.returncode != 0:
-        raise RuntimeError(f"claude CLI 실행 실패: {result.stderr.strip()}")
+        if result.returncode != 0:
+            last_exc = RuntimeError(f"claude CLI 실행 실패: {result.stderr.strip()}")
+            if attempt < _RETRIES - 1:
+                logger.warning(f"Claude 실행 실패, 재시도 중... ({attempt + 1}/{_RETRIES - 1})")
+            continue
 
-    message = result.stdout.strip()
-    logger.info("Claude 메시지 생성 완료.")
-    return message
+        message = result.stdout.strip()
+        logger.info("Claude 메시지 생성 완료.")
+        return message
+
+    raise last_exc
